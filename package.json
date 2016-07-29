@@ -1,5 +1,5 @@
 {
-  "name": "analytics.js-integration-astronomer",
+  "name": "@astronomerio/analytics.js-integration-astronomer",
   "description": "The Astronomer analytics.js integration.",
   "author": "Segment <friends@segment.com>",
   "license": "MIT",
