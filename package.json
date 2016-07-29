@@ -1,6 +1,6 @@
 {
   "name": "analytics.js-integration-astronomer",
-  "description": "The Segmentio analytics.js integration.",
+  "description": "The Astronomer analytics.js integration.",
   "author": "Segment <friends@segment.com>",
   "license": "MIT",
   "main": "lib/index.js",
@@ -12,7 +12,7 @@
     "npm": ">=2.7.0"
   },
   "repository": {
-    "url": "https://github.com/segment-integrations/analytics.js-integration-segmentio.git",
+    "url": "https://github.com/astronomerio/analytics.js-integration-astronomer.git",
     "type": "git"
   },
   "bugs": {
