@@ -20,7 +20,6 @@
     "url": "https://github.com/astronomer-integrations/analytics.js-integration-astronomer/issues"
   },
   "dependencies": {
-    "@astronomerio/analytics.js-core": "github:astronomerio/analytics.js-core#3.0.0",
     "@astronomerio/analytics.js-integration": "github:astronomerio/analytics.js-integration#3.1.0",
     "@segment/ad-params": "1.0.0",
     "@segment/protocol": "1.0.0",
@@ -35,6 +34,7 @@
     "uuid": "2.0.3"
   },
   "devDependencies": {
+    "@astronomerio/analytics.js-core": "github:astronomerio/analytics.js-core#3.0.0",
     "@segment/analytics.js-integration-tester": "^2.0.0",
     "@segment/clear-env": "^2.0.1",
     "@segment/eslint-config": "^3.1.1",
