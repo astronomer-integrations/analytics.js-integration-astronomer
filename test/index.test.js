@@ -1,19 +1,19 @@
 
-var Analytics = require('analytics.js-core').constructor;
-var assert = require('component/assert');
+var Analytics = require('@astronomerio/analytics.js-core').constructor;
+var assert = require('assert');
 var cookie = require('cookie');
-var integration = require('analytics.js-integration');
-var json = require('segmentio/json@1.0.0');
-var protocol = require('protocol');
-var sandbox = require('clear-env');
-var spy = require('segmentio/spy');
-var store = require('store');
-var tester = require('analytics.js-integration-tester');
-var type = require('component/type@1.0.0');
-var Segment = require('../lib/');
+var integration = require('@astronomerio/analytics.js-integration');
+var json = require('json');
+var protocol = require('@segment/protocol');
+var sandbox = require('@segment/clear-env');
+var spy = require('@segment/spy');
+var store = require('@segment/store');
+var tester = require('@segment/analytics.js-integration-tester');
+var type = require('component-type');
+var Astronomer = require('../lib/');
 
-describe('Segment.io', function() {
-  var segment;
+describe('Astronomer.io', function() {
+  var astronomer;
   var analytics;
   var options = {
     apiKey: 'oq0vdlg7yi'
@@ -29,8 +29,8 @@ describe('Segment.io', function() {
   beforeEach(function() {
     protocol.reset();
     analytics = new Analytics();
-    segment = new Segment(options);
-    analytics.use(Segment);
+    astronomer = new Astronomer(options);
+    analytics.use(Astronomer);
     analytics.use(tester);
     analytics.add(segment);
     analytics.assert(Segment.global === window);
@@ -58,7 +58,7 @@ describe('Segment.io', function() {
   it('should always be turned on', function(done) {
     var Analytics = analytics.constructor;
     var ajs = new Analytics();
-    ajs.use(Segment);
+    ajs.use(Astronomer);
     ajs.initialize({ 'Segment.io': options });
     ajs.ready(function() {
       var segment = ajs._integrations['Segment.io'];
@@ -71,99 +71,99 @@ describe('Segment.io', function() {
 
   describe('Segment.storage()', function() {
     it('should return cookie() when the protocol isnt file://', function() {
-      analytics.assert(Segment.storage(), cookie);
+      analytics.assert(Astronomer.storage(), cookie);
     });
 
     it('should return store() when the protocol is file://', function() {
-      analytics.assert(Segment.storage(), cookie);
+      analytics.assert(Astronomer.storage(), cookie);
       protocol('file:');
-      analytics.assert(Segment.storage(), store);
+      analytics.assert(Astronomer.storage(), store);
     });
 
     it('should return store() when the protocol is chrome-extension://', function() {
-      analytics.assert(Segment.storage(), cookie);
+      analytics.assert(Astronomer.storage(), cookie);
       protocol('chrome-extension:');
-      analytics.assert(Segment.storage(), store);
+      analytics.assert(Astronomer.storage(), store);
     });
   });
 
   describe('before loading', function() {
     beforeEach(function() {
-      analytics.stub(segment, 'load');
+      analytics.stub(astronomer, 'load');
     });
 
     describe('#normalize', function() {
       var object;
 
       beforeEach(function() {
-        segment.cookie('s:context.referrer', null);
+        astronomer.cookie('s:context.referrer', null);
         analytics.initialize();
         object = {};
       });
 
       it('should add .anonymousId', function() {
         analytics.user().anonymousId('anon-id');
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.anonymousId === 'anon-id');
       });
 
       it('should add .sentAt', function() {
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.sentAt);
         analytics.assert(type(object.sentAt) === 'date');
       });
 
       it('should add .userId', function() {
         analytics.user().id('user-id');
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.userId === 'user-id');
       });
 
       it('should not replace the .userId', function() {
         analytics.user().id('user-id');
         object.userId = 'existing-id';
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.userId === 'existing-id');
       });
 
       it('should always add .anonymousId even if .userId is given', function() {
         var object = { userId: 'baz' };
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.anonymousId.length === 36);
       });
 
       it('should add .context', function() {
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.context);
       });
 
       it('should not rewrite context if provided', function() {
         var ctx = {};
         var object = { context: ctx };
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.context === ctx);
       });
 
       it('should copy .options to .context', function() {
         var opts = {};
         var object = { options: opts };
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.context === opts);
         analytics.assert(object.options == null);
       });
 
       it('should add .writeKey', function() {
-        segment.normalize(object);
-        analytics.assert(object.writeKey === segment.options.apiKey);
+        astronomer.normalize(object);
+        analytics.assert(object.writeKey === astronomer.options.apiKey);
       });
 
       it('should add .messageId', function() {
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.messageId.length === 36);
       });
 
       it('should add .library', function() {
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.context.library);
         analytics.assert(object.context.library.name === 'analytics.js');
         analytics.assert(object.context.library.version === analytics.VERSION);
@@ -177,22 +177,22 @@ describe('Segment.io', function() {
           }
         };
         var object = { context: ctx };
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.context.library);
         analytics.assert(object.context.library.name === 'analytics-wordpress');
         analytics.assert(object.context.library.version === '1.0.3');
       });
 
       it('should add .userAgent', function() {
-        segment.normalize(object);
+        astronomer.normalize(object);
         analytics.assert(object.context.userAgent === navigator.userAgent);
       });
 
       it('should add .campaign', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.search = '?utm_source=source&utm_medium=medium&utm_term=term&utm_content=content&utm_campaign=name';
-        Segment.global.location.hostname = 'localhost';
-        segment.normalize(object);
+        Astronomer.global = { navigator: {}, location: {} };
+        Astronomer.global.location.search = '?utm_source=source&utm_medium=medium&utm_term=term&utm_content=content&utm_campaign=name';
+        Astronomer.global.location.hostname = 'localhost';
+        astronomer.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.campaign);
@@ -201,48 +201,48 @@ describe('Segment.io', function() {
         analytics.assert(object.context.campaign.term === 'term');
         analytics.assert(object.context.campaign.content === 'content');
         analytics.assert(object.context.campaign.name === 'name');
-        Segment.global = window;
+        Astronomer.global = window;
       });
 
       it('should add .referrer.id and .referrer.type', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.search = '?utm_source=source&urid=medium';
-        Segment.global.location.hostname = 'localhost';
-        segment.normalize(object);
+        Astronomer.global = { navigator: {}, location: {} };
+        Astronomer.global.location.search = '?utm_source=source&urid=medium';
+        Astronomer.global.location.hostname = 'localhost';
+        astronomer.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.referrer);
         analytics.assert(object.context.referrer.id === 'medium');
         analytics.assert(object.context.referrer.type === 'millennial-media');
-        Segment.global = window;
+        Astronomer.global = window;
       });
 
       it('should add .referrer.id and .referrer.type from cookie', function() {
-        segment.cookie('s:context.referrer', '{"id":"baz","type":"millennial-media"}');
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.search = '?utm_source=source';
-        Segment.global.location.hostname = 'localhost';
-        segment.normalize(object);
+        astronomer.cookie('s:context.referrer', '{"id":"baz","type":"millennial-media"}');
+        Astronomer.global = { navigator: {}, location: {} };
+        Astronomer.global.location.search = '?utm_source=source';
+        Astronomer.global.location.hostname = 'localhost';
+        astronomer.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.referrer);
         analytics.assert(object.context.referrer.id === 'baz');
         analytics.assert(object.context.referrer.type === 'millennial-media');
-        Segment.global = window;
+        Astronomer.global = window;
       });
 
       it('should add .referrer.id and .referrer.type from cookie when no query is given', function() {
-        segment.cookie('s:context.referrer', '{"id":"medium","type":"millennial-media"}');
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.search = '';
-        Segment.global.location.hostname = 'localhost';
-        segment.normalize(object);
+        astronomer.cookie('s:context.referrer', '{"id":"medium","type":"millennial-media"}');
+        Astronomer.global = { navigator: {}, location: {} };
+        Astronomer.global.location.search = '';
+        Astronomer.global.location.hostname = 'localhost';
+        astronomer.normalize(object);
         analytics.assert(object);
         analytics.assert(object.context);
         analytics.assert(object.context.referrer);
         analytics.assert(object.context.referrer.id === 'medium');
         analytics.assert(object.context.referrer.type === 'millennial-media');
-        Segment.global = window;
+        Astronomer.global = window;
       });
     });
   });
@@ -256,12 +256,12 @@ describe('Segment.io', function() {
 
     describe('#page', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'send');
+        analytics.stub(astronomer, 'send');
       });
 
       it('should send section, name and properties', function() {
         analytics.page('section', 'name', { property: true }, { opt: true });
-        var args = segment.send.args[0];
+        var args = astronomer.send.args[0];
         analytics.assert(args[0] === '/p');
         analytics.assert(args[1].name === 'name');
         analytics.assert(args[1].category === 'section');
@@ -273,12 +273,12 @@ describe('Segment.io', function() {
 
     describe('#identify', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'send');
+        analytics.stub(astronomer, 'send');
       });
 
       it('should send an id and traits', function() {
         analytics.identify('id', { trait: true }, { opt: true });
-        var args = segment.send.args[0];
+        var args = astronomer.send.args[0];
         analytics.assert(args[0] === '/i');
         analytics.assert(args[1].userId === 'id');
         analytics.assert(args[1].traits.trait === true);
@@ -289,12 +289,12 @@ describe('Segment.io', function() {
 
     describe('#track', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'send');
+        analytics.stub(astronomer, 'send');
       });
 
       it('should send an event and properties', function() {
         analytics.track('event', { prop: true }, { opt: true });
-        var args = segment.send.args[0];
+        var args = astronomer.send.args[0];
         analytics.assert(args[0] === '/t');
         analytics.assert(args[1].event === 'event');
         analytics.assert(args[1].context.opt === true);
@@ -306,12 +306,12 @@ describe('Segment.io', function() {
 
     describe('#group', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'send');
+        analytics.stub(astronomer, 'send');
       });
 
       it('should send groupId and traits', function() {
         analytics.group('id', { trait: true }, { opt: true });
-        var args = segment.send.args[0];
+        var args = astronomer.send.args[0];
         analytics.assert(args[0] === '/g');
         analytics.assert(args[1].groupId === 'id');
         analytics.assert(args[1].context.opt === true);
@@ -322,12 +322,12 @@ describe('Segment.io', function() {
 
     describe('#alias', function() {
       beforeEach(function() {
-        analytics.stub(segment, 'send');
+        analytics.stub(astronomer, 'send');
       });
 
       it('should send .userId and .previousId', function() {
         analytics.alias('to', 'from');
-        var args = segment.send.args[0];
+        var args = astronomer.send.args[0];
         analytics.assert(args[0] === '/a');
         analytics.assert(args[1].previousId === 'from');
         analytics.assert(args[1].userId === 'to');
@@ -337,7 +337,7 @@ describe('Segment.io', function() {
       it('should fallback to user.anonymousId if .previousId is omitted', function() {
         analytics.user().anonymousId('anon-id');
         analytics.alias('to');
-        var args = segment.send.args[0];
+        var args = astronomer.send.args[0];
         analytics.assert(args[0] === '/a');
         analytics.assert(args[1].previousId === 'anon-id');
         analytics.assert(args[1].userId === 'to');
@@ -346,7 +346,7 @@ describe('Segment.io', function() {
 
       it('should fallback to user.anonymousId if .previousId and user.id are falsey', function() {
         analytics.alias('to');
-        var args = segment.send.args[0];
+        var args = astronomer.send.args[0];
         analytics.assert(args[0] === '/a');
         analytics.assert(args[1].previousId);
         analytics.assert(args[1].previousId.length === 36);
@@ -355,7 +355,7 @@ describe('Segment.io', function() {
 
       it('should rename `.from` and `.to` to `.previousId` and `.userId`', function() {
         analytics.alias('user-id', 'previous-id');
-        var args = segment.send.args[0];
+        var args = astronomer.send.args[0];
         analytics.assert(args[0] === '/a');
         analytics.assert(args[1].previousId === 'previous-id');
         analytics.assert(args[1].userId === 'user-id');
@@ -366,41 +366,41 @@ describe('Segment.io', function() {
 
     describe('#send', function() {
       beforeEach(function() {
-        analytics.spy(segment, 'session');
+        analytics.spy(astronomer, 'session');
       });
 
       it('should use http: protocol when http:', function(done) {
         protocol('http:');
-        segment.send('/i', { userId: 'id' }, function(err, res) {
+        astronomer.send('/i', { userId: 'id' }, function(err, res) {
           if (err) return done(err);
-          assert.equal('http://api.segment.io/v1/i', res.url);
+          assert.equal('http://api.astronomer.io/v1/i', res.url);
           done();
         });
       });
 
       it('should use https: protocol when https:', function(done) {
         protocol('https:');
-        segment.send('/i', { userId: 'id' }, function(err, res) {
+        astronomer.send('/i', { userId: 'id' }, function(err, res) {
           if (err) return done(err);
-          assert.equal('https://api.segment.io/v1/i', res.url);
+          assert.equal('https://api.astronomer.io/v1/i', res.url);
           done();
         });
       });
 
       it('should use https: protocol when file:', function(done) {
         protocol('file:');
-        segment.send('/i', { userId: 'id' }, function(err, res) {
+        astronomer.send('/i', { userId: 'id' }, function(err, res) {
           if (err) return done(err);
-          assert.equal('https://api.segment.io/v1/i', res.url);
+          assert.equal('https://api.astronomer.io/v1/i', res.url);
           done();
         });
       });
 
       it('should use https: protocol when chrome-extension:', function(done) {
         protocol('chrome-extension:');
-        segment.send('/i', { userId: 'id' }, function(err, res) {
+        astronomer.send('/i', { userId: 'id' }, function(err, res) {
           if (err) return done(err);
-          assert.equal('https://api.segment.io/v1/i', res.url);
+          assert.equal('https://api.astronomer.io/v1/i', res.url);
           done();
         });
       });
@@ -414,35 +414,35 @@ describe('Segment.io', function() {
 
     describe('#cookie', function() {
       beforeEach(function() {
-        segment.cookie('foo', null);
+        astronomer.cookie('foo', null);
       });
 
       it('should persist the cookie even when the hostname is "dev"', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.href = 'https://dev:300/path';
-        analytics.assert(segment.cookie('foo') == null);
-        segment.cookie('foo', 'bar');
-        analytics.assert(segment.cookie('foo') === 'bar');
-        Segment.global = window;
+        Astronomer.global = { navigator: {}, location: {} };
+        Astronomer.global.location.href = 'https://dev:300/path';
+        analytics.assert(astronomer.cookie('foo') == null);
+        astronomer.cookie('foo', 'bar');
+        analytics.assert(astronomer.cookie('foo') === 'bar');
+        Astronomer.global = window;
       });
 
       it('should persist the cookie even when the hostname is "127.0.0.1"', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.href = 'http://127.0.0.1:3000/';
-        analytics.assert(segment.cookie('foo') == null);
-        segment.cookie('foo', 'bar');
-        analytics.assert(segment.cookie('foo') === 'bar');
-        Segment.global = window;
+        Astronomer.global = { navigator: {}, location: {} };
+        Astronomer.global.location.href = 'http://127.0.0.1:3000/';
+        analytics.assert(astronomer.cookie('foo') == null);
+        astronomer.cookie('foo', 'bar');
+        analytics.assert(astronomer.cookie('foo') === 'bar');
+        Astronomer.global = window;
       });
 
       it('should persist the cookie even when the hostname is "app.herokuapp.com"', function() {
-        Segment.global = { navigator: {}, location: {} };
-        Segment.global.location.href = 'https://app.herokuapp.com/about';
-        Segment.global.location.hostname = 'app.herokuapp.com';
-        analytics.assert(segment.cookie('foo') == null);
-        segment.cookie('foo', 'bar');
-        analytics.assert(segment.cookie('foo') === 'bar');
-        Segment.global = window;
+        Astronomer.global = { navigator: {}, location: {} };
+        Astronomer.global.location.href = 'https://app.herokuapp.com/about';
+        Astronomer.global.location.hostname = 'app.herokuapp.com';
+        analytics.assert(astronomer.cookie('foo') == null);
+        astronomer.cookie('foo', 'bar');
+        analytics.assert(astronomer.cookie('foo') === 'bar');
+        Astronomer.global = window;
       });
     });
 
@@ -450,7 +450,7 @@ describe('Segment.io', function() {
     function ensure(endpoint, fixture) {
       return function() {
         it('should succeed', function(done) {
-          segment.send(endpoint, fixture, function(err, req) {
+          astronomer.send(endpoint, fixture, function(err, req) {
             if (err) return done(err);
             analytics.assert(json.parse(req.responseText).success);
             done();
