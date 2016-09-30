@@ -28,8 +28,8 @@
     "@segment/top-domain": "3.0.0",
     "@segment/utm-params": "2.0.0",
     "clone": "2.0.0",
+    "component-cookie": "^1.1.2",
     "component-json": "0.1.4",
-    "cookie": "0.3.1",
     "extend": "3.0.0",
     "uuid": "2.0.3"
   },
