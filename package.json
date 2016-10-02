@@ -1,6 +1,6 @@
 {
   "name": "@astronomerio/analytics.js-integration-astronomer",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "The Astronomer analytics.js integration.",
   "author": "Astronomer <info@astronomer.io>",
   "license": "MIT",
