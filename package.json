@@ -31,7 +31,8 @@
     "component-cookie": "^1.1.2",
     "component-json": "0.1.4",
     "extend": "3.0.0",
-    "uuid": "2.0.3"
+    "uuid": "2.0.3",
+    "yields-store": "^1.0.2"
   },
   "devDependencies": {
     "@astronomerio/analytics.js-core": "github:astronomerio/analytics.js-core#3.0.0",
